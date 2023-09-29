@@ -5,6 +5,10 @@ load("CAR_M&A.RData")
 library(robustHD)
 library(dplyr)
 library(lmtest)
+library(vtable)
+library(stargazer)
+
+
 
 # Bullet 1 ------------------------------------------------------------------
 
@@ -42,13 +46,12 @@ variables <- c("bidder.car", "deal.value", "bidder.size", "bidder.mtb", "bidder.
 for (var in variables) {
   df[[var]] <- winsorize(df[[var]], probs = c(0.01, 0.99))
 }
-test
+
 
 
 
 # Bullet 2 ----------------------------------------------------------------
 # Aggregate data by year
-
 desc_table1 <- df %>%
   group_by(yyyy) %>%
   summarise(
@@ -63,22 +66,16 @@ print(desc_table1)
 
 
 # Bullet 3 ----------------------------------------------------------------
-# Summary statistics for regression variables
-desc_table2 <- df %>%
-  summarise(
-    across(
-      c("bidder.car", "deal.allstock", "private", "public"),
-      list(mean = mean, sd = sd, p10 = ~quantile(., 0.1), p25 = ~quantile(., 0.25), p50 = ~quantile(., 0.5), p75 = ~quantile(., 0.75), p90 = ~quantile(., 0.9)),
-      .names = "{col}_{fn}"
-    )
-  )
+
+# Create the summary table using sumtable()
+desc_table2 <- sumtable(df, c("bidder.car", "deal.allstock", "private", "public"))
 
 # Display the table
 print(desc_table2)
 
 
-# Bullet 4 ----------------------------------------------------------------
 
+# Bullet 4 ----------------------------------------------------------------
 
 # Regression models
 model1 <- lm(bidder.car ~ deal.allstock, data = subset(df, public == 1))
@@ -87,7 +84,7 @@ model3 <- lm(bidder.car ~ deal.allstock + public + deal.allstock:public, data = 
 
 # Display the results
 summary(model1)
-summary(model2)
+summary(model2)a
 summary(model3)
 
 
