@@ -39,13 +39,11 @@ variables <- c("bidder.car", "deal.value", "bidder.size", "bidder.mtb", "bidder.
 
 # Loop through each variable to Winsorize
 for (var in variables) {
-  df[[var]] <- winsorize(df[[var]], probs = c(0.01, 0.99))
+  df[[var]] <- winsorize(df[[var]], probs = c(0.025, 0.975))
 }
 
 
-
-
-# Bullet 2 ----------------------------------------------------------------
+# Descriptive table 1 ----------------------------------------------------------------
 # Aggregate data by year
 desc_table1 <- df %>%
   group_by(yyyy) %>%
@@ -60,10 +58,12 @@ desc_table1 <- df %>%
 print(desc_table1)
 
 
-# Bullet 3 ----------------------------------------------------------------
+# Descriptive table 2 ----------------------------------------------------------------
+# Variables to include in the descriptive table
+vars_to_include <- c("bidder.car", "deal.allstock", "public", "bidder.size", "bidder.sigma")
 
 # Create the summary table using sumtable()
-desc_table2 <- sumtable(df, c("bidder.car", "deal.allstock", "private", "public"))
+desc_table2 <- sumtable(df[, vars_to_include])
 
 # Display the table
 print(desc_table2)
@@ -75,15 +75,17 @@ print(desc_table2)
 # Regression models
 model1 <- lm(bidder.car ~ deal.allstock, data = subset(df, public == 1))
 model2 <- lm(bidder.car ~ deal.allstock, data = subset(df, private == 1))
-model3 <- lm(bidder.car ~ deal.allstock + public + deal.allstock:public, data = df)
+model3 <- lm(bidder.car ~ deal.allstock + public + deal.allstock*public, data = df)
+model2_1 <- lm(bidder.car ~ deal.allstock + hostile, data = subset(df, private == 1))
 
 # Display the results
 summary(model1)
-summary(model2)a
+summary(model2)
 summary(model3)
 
 # Create a stargazer table for the regression models
-stargazer(model1, model2, model3, title = "Regression Model Summaries", type = "text")
+stargazer(model1, model2, model3, title = "Regression Model Summaries", type = "text", 
+          report = "vc*t")
 
 
 # Bullet 5 ----------------------------------------------------------------
@@ -102,7 +104,8 @@ summary(model7)
 
 # Bullet 5 ----------------------------------------------------------------
 # Create a stargazer table for the regression models with controls
-stargazer(model4, model5, model6, model7, title = "Regression Models with Controls", type = "text")
+stargazer(model4, model5, model6, model7, title = "Regression Models with Controls", type = "text", 
+          report = "vc*t")
 
 
 
