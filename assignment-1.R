@@ -42,7 +42,7 @@ variables <- c("bidder.car", "deal.value", "bidder.size", "bidder.mtb", "bidder.
 for (var in variables) {
   df[[var]] <- winsorize(df[[var]], probs = c(0.01, 0.99))
 }
-
+test
 
 
 
