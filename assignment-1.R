@@ -108,7 +108,6 @@ stargazer(model1, model2, model3, title = "Regression Model Summaries", type = "
 
 # Create a stargazer table for the regression models with controls
 stargazer(model4, model5, model6, model7, title = "Regression Models with Controls", type = "text", 
-          se = list(se[[1]], se[[2]], se[[3]]),
-          report = "vc*t")
+          se = list(se[[4]], se[[5]], se[[6]], se[[7]]), report = "vc*t")
 
 
