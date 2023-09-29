@@ -4,6 +4,8 @@ library(dplyr)
 library(lmtest)
 library(vtable)
 library(stargazer)
+library(lmtest)
+library(sandwich)
 
 # Load the RData file
 load("CAR_M&A.RData")
@@ -78,6 +80,11 @@ model2 <- lm(bidder.car ~ deal.allstock, data = subset(df, private == 1))
 model3 <- lm(bidder.car ~ deal.allstock + public + deal.allstock*public, data = df)
 model2_1 <- lm(bidder.car ~ deal.allstock + hostile, data = subset(df, private == 1))
 
+# Create a stargazer table for the regression models
+stargazer(model3, model31, model32, title = "Regression Model Summaries", type = "text", 
+          report = "vc*t")
+
+
 # Display the results
 summary(model1)
 summary(model2)
@@ -109,7 +116,70 @@ stargazer(model4, model5, model6, model7, title = "Regression Models with Contro
 
 
 
+# Bullet 4 ----------------------------------------------------------------
+
+# Test for heteroskedasticity in the first set of models
+bp1 <- bptest(model1)
+bp2 <- bptest(model2)
+bp3 <- bptest(model3)
+bp2_1 <- bptest(model2_1)
+
+# Display the results
+print("Breusch-Pagan test for model1")
+print(bp1)
+
+print("Breusch-Pagan test for model2")
+print(bp2)
+
+print("Breusch-Pagan test for model3")
+print(bp3)
+
+print("Breusch-Pagan test for model2_1")
+print(bp2_1)
+
+# Bullet 5 ----------------------------------------------------------------
 
 
 
+
+
+# Heteroscedatisity test ----------------------------------------------------------------
+
+# Function to compare t-values
+compare_t_values <- function(model) {
+  # Standard OLS t-values
+  standard_t_values <- summary(model)$coefficients[, "t value"]
+  
+  # Robust t-values
+  robust_t_values <- coeftest(model, vcov = vcovHC(model, type = "HC3"))[, "t value"]
+  
+  # Combine and compare
+  comparison <- data.frame(Standard = standard_t_values, Robust = robust_t_values)
+  print(comparison)
+}
+
+# Run the function on each model
+print("T-value comparison for model1")
+compare_t_values(model1)
+
+print("T-value comparison for model2")
+compare_t_values(model2)
+
+print("T-value comparison for model3")
+compare_t_values(model3)
+
+print("T-value comparison for model2_1")
+compare_t_values(model2_1)
+
+print("T-value comparison for model4")
+compare_t_values(model4)
+
+print("T-value comparison for model5")
+compare_t_values(model5)
+
+print("T-value comparison for model6")
+compare_t_values(model6)
+
+print("T-value comparison for model7")
+compare_t_values(model7)
 
