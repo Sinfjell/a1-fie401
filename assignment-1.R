@@ -1,6 +1,3 @@
-# Load the RData file
-load("CAR_M&A.RData")
-
 # Load libraries
 library(robustHD)
 library(dplyr)
@@ -8,7 +5,8 @@ library(lmtest)
 library(vtable)
 library(stargazer)
 
-
+# Load the RData file
+load("CAR_M&A.RData")
 
 # Bullet 1 ------------------------------------------------------------------
 
@@ -35,9 +33,6 @@ for (var in variables) {
   boxplot(df[[var]], main = paste("Boxplot of", var), ylab = var)
   boxplot_list[[var]] <- recordPlot()  # Store the boxplot
 }
-
-# Winsorize the data (if needed)
-df$bidder.size <- winsorize(df$bidder.size, probs = c(0.01, 0.99))
 
 # List of variables to Winsorize
 variables <- c("bidder.car", "deal.value", "bidder.size", "bidder.mtb", "bidder.runup", "bidder.fcf", "bidder.lev", "bidder.sigma", "deal.relsize")
@@ -87,6 +82,9 @@ summary(model1)
 summary(model2)a
 summary(model3)
 
+# Create a stargazer table for the regression models
+stargazer(model1, model2, model3, title = "Regression Model Summaries", type = "text")
+
 
 # Bullet 5 ----------------------------------------------------------------
 
@@ -101,6 +99,11 @@ summary(model4)
 summary(model5)
 summary(model6)
 summary(model7)
+
+# Bullet 5 ----------------------------------------------------------------
+# Create a stargazer table for the regression models with controls
+stargazer(model4, model5, model6, model7, title = "Regression Models with Controls", type = "text")
+
 
 
 
