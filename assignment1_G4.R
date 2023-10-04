@@ -10,7 +10,7 @@ library(sandwich)
 # Load the RData file
 load("CAR_M&A.RData")
 
-# Bullet 1 ------------------------------------------------------------------
+# DATA TREATMENT ------------------------------------------------------------------
 
 # List the names of the objects in the environment
 loaded_names <- ls()
@@ -25,7 +25,7 @@ summary(df)
 boxplot_list <- list()
 
 # Set up the plotting area for multiple plots
-par(mfrow = c(2, 2))  # 4 rows and 2 columns
+par(mfrow = c(3, 3))  # 4 rows and 2 columns
 
 # List of variables to plot
 variables <- c("bidder.car", "deal.value", "bidder.size", "bidder.mtb", "bidder.runup", "bidder.fcf", "bidder.lev", "bidder.sigma", "deal.relsize")
@@ -86,14 +86,37 @@ model5 <- lm(bidder.car ~ deal.allstock + bidder.size + bidder.sigma, data = sub
 model6 <- lm(bidder.car ~ deal.allstock + public + deal.allstock*public + bidder.size + bidder.sigma, data = df)
 model7 <- lm(bidder.car ~ deal.allstock + public + deal.allstock*public + bidder.size + bidder.sigma + bidder.size:public + bidder.sigma:public, data = df)
 
-# Create an empty list to store the robust standard errors
-se <- list()
+# Breusch-pagan test for homoscedasity
+bptest(model1)
+bptest(model2)
+bptest(model3)
+bptest(model4)
+bptest(model5)
+bptest(model6)
+bptest(model7)
+# low p-values, we need to adjust for heteroscedasity
 
-# Loop through each model to calculate robust standard errors
-models <- list(model1, model2, model3, model2_1, model4, model5, model6, model7)
-for (i in 1:length(models)) {
-  se[[i]] <- coeftest(models[[i]], vcov = vcovHC(models[[i]], type = "HC3"))[, 2]
-}
+# Adjusting for heteroscedasity
+model1_hom <- coeftest(model1, vcov = vcocHC)
+model2_hom <- coeftest(model2, vcov = vcocHC)
+model3_hom <- coeftest(model3, vcov = vcocHC)
+model4_hom <- coeftest(model4, vcov = vcocHC)
+model5_hom <- coeftest(model5, vcov = vcocHC)
+model6_hom <- coeftest(model6, vcov = vcocHC)
+model7_hom <- coeftest(model7, vcov = vcovHC)
+
+# printing out the models in correct format
+stargazer(model1_hom, model2_hom, model3_hom, title = "Regression Models with Controls", 
+          type = "text", report = "vc*t", keep.stat=c(), 
+          covariate.labels = c("Stock payment", "Public target", "Stock payment x Public target"),
+          dep.var.labels = "Acquirer’s cumulative abnormal return (CAR)")
+
+stargazer(model4_hom, model5_hom, model6_hom, model7_hom, title = "Regression Models with Controls", 
+          type = "text", report = "vc*t", 
+          dep.var.labels = "Acquirer’s cumulative abnormal return (CAR)", 
+          covariate.labels = c("Stock payment", "Public target", "Bidder market value", "Bidder volatility", 
+                               "Stock payment x Public target", "Public target x Bidder market value", "Public target x Bidder volatility"))
+
 # Check the distribution of 'hostile' within the subset where 'private == 1'
 table(subset(df, private == 1)$hostile)
 
@@ -101,13 +124,4 @@ table(subset(df, public == 1)$hostile)
 
 # Check summary statistics
 summary(subset(df, private == 1)$hostile)
-
-# Stargazer table for model 1,2,3, adjusted for heterosceda..
-stargazer(model1, model2, model3, title = "Regression Model Summaries", type = "text", 
-          se = list(se[[1]], se[[2]], se[[3]]), report = "vc*t")
-
-# Create a stargazer table for the regression models with controls
-stargazer(model4, model5, model6, model7, title = "Regression Models with Controls", type = "text", 
-          se = list(se[[4]], se[[5]], se[[6]], se[[7]]), report = "vc*t")
-
 
